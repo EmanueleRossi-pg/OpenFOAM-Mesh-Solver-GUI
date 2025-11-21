@@ -1,0 +1,110 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | foam-extend: Open Source CFD                    |
+|  \\    /   O peration     | Version:     4.0                                |
+|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+
+ddtSchemes
+{
+    default         Euler;        
+    ddt(U)          Euler;        
+    ddt(p)          Euler;        
+
+    // Compressible energy/temperature time derivative (covered for rhoPimpleFoam/sonicFoam)
+    ddt(T)          Euler;
+    // If using enthalpy/internal-energy formulation, leave these present but unused:
+    ddt(h)          Euler;
+    ddt(e)          Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+
+    // Safer gradients for velocity on mixed-quality meshes (optional override)
+    grad(U)         cellMDLimited Gauss linear 1.0;
+
+    // Temperature/energy gradients (helpful for compressible)
+    grad(T)         Gauss linear;
+    grad(h)         Gauss linear;
+    grad(e)         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+
+    // Incompressible momentum (kept)
+    div(phi,U)      bounded Gauss limitedLinearV 1;
+
+    // Turbulence (covering k-epsilon, k-omega, SA, etc.)
+    div(phi,k)          bounded Gauss limitedLinear 1;
+    div(phi,epsilon)    bounded Gauss limitedLinear 1;
+    div(phi,omega)      bounded Gauss limitedLinear 1;
+    div(phi,nuTilda)    bounded Gauss limitedLinear 1;
+
+    // Viscous stress (kept)
+    div((nuEff*dev2(T(grad(U))))) Gauss linear;
+
+    // ---------------- Compressible additions ----------------
+    // Convective term for compressible momentum (rho*phi):
+    // commonly used by rhoPimpleFoam tutorials.
+    div(rho*phi,U)  Gauss upwind;       // or limitedLinearV 1; use upwind for robustness
+
+    // Energy/temperature convection (choose the form your solver uses):
+    // rhoPimpleFoam often solves enthalpy 'h', sonicFoam may use internal energy 'e'.
+    div(phi,h)      Gauss linearUpwind grad(h);
+    div(phi,e)      Gauss linearUpwind grad(e);
+    div(phi,T)      Gauss linearUpwind grad(T);
+
+    // Kinetic energy transport in sonic regimes (stabilizing term for shocks)
+    div(phi,K)      Gauss linear;
+    // --------------------------------------------------------
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+
+    // Make common laplacians explicit (use default if absent)
+    laplacian(nuEff,U) Gauss linear corrected;
+    laplacian((1|A|B),p) Gauss linear corrected; // placeholder covers pressure-like Poisson ops
+
+    // Thermal diffusion (compressible):
+    laplacian(alphaEff,T)   Gauss linear corrected;
+    laplacian(alphaEff,h)   Gauss linear corrected;
+    laplacian(alphaEff,e)   Gauss linear corrected;
+
+    // --- Potential flow (potentialFoam): Laplacian on Phi ---
+    laplacian(1,Phi)        Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+
+    // Optional: slightly more dissipative on U at high Mach to damp wiggles
+    // interpolate(U) linear; // keep default
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+// Wall-distance calculation required by OpenFOAM 2412 (avoids FATAL on wallDist)
+wallDist
+{
+    // Robust and cheap distance method (no extra solver)
+    method          meshWave;
+}

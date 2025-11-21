@@ -1,0 +1,20 @@
+# Core
+numpy==2.3.2
+numpy-stl==3.2.0
+typing_extensions==4.14.1
+python-utils==3.9.1
+
+# Qt GUI
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.17
+PyQt5_sip==12.17.0
+
+# 3D preview (pyqtgraph uses OpenGL via QOpenGLWidget)
+pyqtgraph==0.13.7
+PyOpenGL==3.1.7
+PyOpenGL-accelerate==3.1.7
+matplotlib>=3.8
+
+# External (non-pip) dependency:
+# - pvpython (from ParaView >= 5.10). Install via system packages or official binaries.
+#   Common path if installed from Kitware binaries: /opt/paraview-<version>/bin/pvpython

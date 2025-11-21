@@ -1,0 +1,133 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2406                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+
+// Which of the steps to run
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+keepPatches true;
+
+geometry
+{
+    cylinder.stl
+    {
+        type triSurfaceMesh;
+        name placeholder;
+    }
+
+    refinementBox
+    {
+        type searchableBox;
+        min (0 0 0);
+        max (0 0 0);
+    }
+};
+
+castellatedMeshControls
+{
+    
+    maxLocalCells       100000;
+    maxGlobalCells      2000000;    
+    minRefinementCells  10;     
+    maxLoadUnbalance    0.10;
+    nCellsBetweenLevels 3;    
+    resolveFeatureAngle 30;    
+
+    features
+    (
+        {
+            file "cylinder.eMesh";
+            level 3;
+        }
+    );
+
+    refinementSurfaces
+    {
+        placeholder
+        {
+            level (2 3);
+            patchInfo 
+            {
+                type wall; 
+                inGroups (placeholderGroup); 
+            }
+        }
+    }
+
+    refinementRegions
+    {
+        refinementBox
+        {
+            mode inside;
+            levels ((1E15 2));
+        }
+    }
+
+    
+    allowFreeStandingZoneFaces true;
+    locationsOutsideMesh ((100 100 100));
+};
+
+snapControls
+{
+    nSmoothPatch        3;
+    tolerance           2.0;
+    nSolveIter          30;
+    nRelaxIter          5;
+    nFeatureSnapIter   10;
+
+    // Feature snapping
+    implicitFeatureSnap  false;
+    explicitFeatureSnap  true;
+    multiRegionFeatureSnap false;
+};
+
+addLayersControls
+{
+    // Layer addition controls.
+    layers
+{
+        <patchName>
+        {
+            nSurfaceLayers 3;
+        }
+    }
+    
+    slipFeatureAngle 30;
+    nRelaxIter 3;
+    minMedialAxisAngle 90;
+};
+
+
+
+meshQualityControls
+{
+    #include "meshQualityDict"
+    relaxed { maxNonOrtho 100; }   
+    nSmoothScale     4;
+    errorReduction   0.75;
+};
+
+
+writeFlags
+(
+    scalarLevels
+    layerSets
+    layerFields
+);
+
+
+mergeTolerance 1e-6;

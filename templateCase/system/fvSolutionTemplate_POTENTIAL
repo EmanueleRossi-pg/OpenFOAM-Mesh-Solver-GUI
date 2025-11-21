@@ -1,0 +1,76 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412 (compatible)                    |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    // --- Velocity potential (elliptic Laplace problem)
+    Phi
+    {
+        solver          PCG;            // or GAMG if you prefer multigrid
+        preconditioner  DIC;            // diagonal incomplete Cholesky
+        tolerance       1e-08;
+        relTol          0.0;            // strict solve (no relative shortcut)
+    }
+
+    // If you also keep a pressure field around (not solved by potentialFoam),
+    // you may define a trivial solver for p, but it's not required:
+    // p
+    // {
+    //     solver      PCG;
+    //     preconditioner DIC;
+    //     tolerance   1e-08;
+    //     relTol      0.0;
+    // }
+}
+
+// --- Potential-flow options for potentialFoam
+potentialFlow
+{
+    nNonOrthogonalCorrectors  0;
+
+    // --- Choose exactly ONE reference method for Phi ---
+
+    // 1) Reference CELL + value (most common and simple)
+    PhiRefCell   0;      // valid cell index in your (global) mesh
+    PhiRefValue  0;      // Phi value imposed in that cell
+
+    // -- OR --
+
+    // 2) Reference POINT in space (solver finds the containing cell)
+    // PhiRefPoint (0 0 0);
+    // PhiRefValue 0;
+}
+
+// PISO/PIMPLE sections are not used by potentialFoam, but you may keep a minimal
+// PISO dictionary if some utilities expect it. It will be ignored by potentialFoam.
+PISO
+{
+    nCorrectors               1;
+    nNonOrthogonalCorrectors  0;
+}
+
+relaxationFactors
+{
+    // Not generally needed for the single Laplace solve of Phi.
+    // Example (commented):
+    // equations
+    // {
+    //     Phi 1.0;
+    // }
+}
+
+// ************************************************************************* //

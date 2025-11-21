@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2412                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*--------------------------------*- C++ -*----------------------------------*\
+| Thermophysical properties (compressible solvers)                           |
+| Put this file in: templateCase/constant/thermophysicalProperties           |
+\*---------------------------------------------------------------------------*/
+thermoType
+{
+    // hePsiThermo = compressible thermo using p & T; psi = compressibility 1/RT
+    type            hePsiThermo;
+
+    // Single-species mixture; for multi-species use 'mixture multiComponentMixture'
+    mixture         pureMixture;
+
+    // Transport model: 'sutherland' (T-dependent viscosity) or 'const'
+    transport       sutherland;
+
+    // Thermodynamics: 'hConst' (constant Cp) or 'janaf' (temperature-dependent)
+    thermo          hConst;
+
+    // Equation of state: 'perfectGas' is typical for air
+    equationOfState perfectGas;
+
+    // 'specie' entries (name, molWeight, etc.)
+    specie          specie;
+
+    // Evolved energy variable: sensibleEnthalpy (h) or sensibleInternalEnergy (e)
+    energy          sensibleEnthalpy;
+}
+
+// Mixture properties (single component)
+mixture
+{
+    specie
+    {
+        name        air;
+        nMoles      1;
+        molWeight   28.97;         // kg/kmol
+    }
+
+    thermodynamics
+    {
+        // hConst coefficients (if thermo=hConst)
+        Cp          1007;          // J/(kg·K) ~ air @ 300K
+        Hf          0;             // J/kg, formation enthalpy
+        // If using thermo=janaf, replace with the JANAF coefficient set
+    }
+
+    transport
+    {
+        // Sutherland law (if transport=sutherland)
+        As          1.458e-6;      // (Pa·s)/sqrt(K)
+        Ts          110.4;         // K
+        Pr          0.71;          // optional, helps some solvers
+        // If transport=const, use e.g.:
+        // mu          1.8e-5;     // Pa·s
+        // Pr          0.71;
+    }
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

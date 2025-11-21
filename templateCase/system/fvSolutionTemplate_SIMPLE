@@ -1,0 +1,186 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412 (compatible)                    |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver               GAMG;
+        tolerance            1e-05;
+        relTol               1e-02;
+        smoother             GaussSeidel;
+        cacheAgglomeration   true;
+        nCellsInCoarsestLevel 10;
+        agglomerator         faceAreaPair;
+        mergeLevels          1;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol               1e-02;
+    }
+
+    "(U|k|epsilon)"
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+
+    "(U|k|epsilon)Final"
+    {
+        $U;
+        relTol               1e-02;
+    }
+
+    omega
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    omegaFinal
+    {
+        $omega;
+        relTol               1e-02;
+    }
+
+    nuTilda
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    nuTildaFinal
+    {
+        $nuTilda;
+        relTol               1e-02;
+    }
+
+    nut
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    nutFinal
+    {
+        $nut;
+        relTol               1e-02;
+    }
+
+    // Optional for compressible setups
+    T
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    TFinal
+    {
+        $T;
+        relTol               0.01;
+    }
+
+    h
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    hFinal
+    {
+        $h;
+        relTol               0.01;
+    }
+
+    e
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    eFinal
+    {
+        $e;
+        relTol               0.01;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    consistent               true;
+
+    // --- Pressure reference (REQUIRED if no fixedValue on p at boundaries) ---
+    // Option A: reference cell (global cell label)
+    pRefCell                  0;
+    pRefValue                 0;
+
+    // Option B (alternative): reference point in space
+    // pRefPoint                 (0 0 0);
+    // pRefValue                 0;
+
+    // PRIMITIVE-form residualControl expected by your SIMPLE build:
+    // (per-field thresholds as single numbers)
+    residualControl
+    {
+        p           1e-05;
+        U           1e-05;
+        k           1e-05;
+        epsilon     1e-05;
+
+        omega       1e-05;
+        nuTilda     1e-05;
+        nut         1e-05;
+
+        // Compressible (present only if you solve them)
+        T           1e-05;
+        h           1e-05;
+        e           1e-05;
+    }
+}
+
+// PISO (ignored by steady SIMPLE solvers)
+PISO
+{
+    nCorrectors               2;
+    nNonOrthogonalCorrectors  0;
+}
+
+relaxationFactors
+{
+    p        0.7;
+    U        0.2;
+    k        0.5;
+    epsilon  0.5;
+    omega    0.5;
+    nuTilda  0.5;
+    nut      0.5;
+    T        0.5;
+    h        0.5;
+    e        0.5;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

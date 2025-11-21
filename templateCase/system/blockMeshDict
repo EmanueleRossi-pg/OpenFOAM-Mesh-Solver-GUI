@@ -1,0 +1,123 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |				
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12                                	
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1;
+
+// these six will be overwritten by generate_blockMeshDict.py
+xmin -7.0;
+xmax  20.0;
+ymin -7.0;
+ymax  7.0;
+zmin -7.0;   
+zmax  7.0;   
+
+// cell size in each direction
+dx 0.5;
+dy 0.5;
+dz 0.5;
+
+// domain extents
+lx #calc "$xmax - $xmin";
+ly #calc "$ymax - $ymin";
+lz #calc "$zmax - $zmin";
+
+// number of cells in each direction
+xcells #calc "max(1, int(ceil($lx/$dx)))";
+ycells #calc "max(1, int(ceil($ly/$dy)))";
+zcells #calc "max(1, int(ceil($lz/$dz)))";
+
+vertices        
+(
+    ($xmin  $ymin  $zmin)
+    ($xmax  $ymin  $zmin)
+    ($xmax  $ymax  $zmin)
+    ($xmin  $ymax  $zmin)
+    ($xmin  $ymin  $zmax)
+    ($xmax  $ymin  $zmax)
+    ($xmax  $ymax  $zmax)
+    ($xmin  $ymax  $zmax)
+);
+
+blocks          
+(
+    hex (0 1 2 3 4 5 6 7) ($xcells $ycells $zcells) simpleGrading (1 1 1)
+);
+
+edges           
+(
+);
+
+boundary        
+(
+    inlet
+    {
+        type patch;
+        faces
+        ( 
+            (0 4 7 3)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        ( 
+            (2 6 5 1)
+        );
+    }
+
+    bottom
+    {
+        type symmetryPlane;          
+        faces
+        ( 
+            (1 5 4 0)
+        );
+    }
+
+    top
+    {
+        type symmetryPlane;            
+        faces
+        ( 
+            (3 7 6 2)
+        );
+    }
+
+    back
+    {
+        type symmetryPlane;
+        faces
+        ( 
+            (0 3 2 1)
+        );
+    }
+
+    front
+    {
+        type symmetryPlane;          
+        faces
+        ( 
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs 
+(
+);
+
+// ************************************************************************* //

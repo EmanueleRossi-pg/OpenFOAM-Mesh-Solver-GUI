@@ -1,0 +1,150 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412 (compatible)                    |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver               GAMG;
+        tolerance            1e-05;
+        relTol               0;
+        smoother             GaussSeidel;
+        cacheAgglomeration   true;
+        nCellsInCoarsestLevel 10;
+        agglomerator         faceAreaPair;
+        mergeLevels          1;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol               0;
+    }
+
+    "(U|k|epsilon)"
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-05;
+        relTol               0;
+    }
+
+    "(U|k|epsilon)Final"
+    {
+        $U;
+        relTol               0;
+    }
+
+    omega
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-05;
+        relTol               0;
+    }
+    omegaFinal
+    {
+        $omega;
+        relTol               0;
+    }
+
+    nuTilda
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-05;
+        relTol               0;
+    }
+    nuTildaFinal
+    {
+        $nuTilda;
+        relTol               0;
+    }
+
+    // Optional for compressible setups
+    T
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0;
+    }
+    TFinal
+    {
+        $T;
+        relTol               0;
+    }
+
+    h
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0;
+    }
+    hFinal
+    {
+        $h;
+        relTol               0;
+    }
+
+    e
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0;
+    }
+    eFinal
+    {
+        $e;
+        relTol               0;
+    }
+}
+
+// PISO transient algorithm (NO residualControl here)
+PISO
+{
+    nCorrectors               3;
+    nNonOrthogonalCorrectors  0;
+
+    // --- Pressure reference (REQUIRED if no fixedValue on p at boundaries) ---
+    // Option A: reference cell (global cell label)
+    pRefCell                  0;
+    pRefValue                 0;
+
+    // Option B (alternative): reference point in space
+    // pRefPoint                 (0 0 0);
+    // pRefValue                 0;
+}
+
+// SIMPLE (ignored by PISO solvers)
+SIMPLE
+{
+    nNonOrthogonalCorrectors  0;
+    consistent               true;
+}
+
+relaxationFactors
+{
+    // Typically no under-relaxation for transient PISO; set relTol=0 above.
+    equations
+    {
+        ".*" 1;
+    }
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

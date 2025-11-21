@@ -1,0 +1,219 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412 (compatible)                    |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    // Pressure solver
+    p
+    {
+        solver               GAMG;
+        tolerance            1e-05;
+        relTol               1e-02;
+
+        smoother             GaussSeidel;
+        cacheAgglomeration   true;
+        nCellsInCoarsestLevel 10;
+        agglomerator         faceAreaPair;
+        mergeLevels          1;
+    }
+
+    // Final correction for pressure
+    pFinal
+    {
+        $p;
+        relTol               1e-02;
+    }
+
+    // Common solver for velocity and turbulence variables
+    "(U|k|epsilon)"
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+
+    // Final correction parameters for U, k, epsilon
+    "(U|k|epsilon)Final"
+    {
+        $U;
+        relTol               1e-02;
+    }
+
+    // Explicit solvers for other common turbulence fields
+    omega
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    omegaFinal
+    {
+        $omega;
+        relTol               1e-02;
+    }
+
+    nuTilda
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    nuTildaFinal
+    {
+        $nuTilda;
+        relTol               1e-02;
+    }
+
+    // Eddy viscosity occasionally iterated explicitly
+    nut
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-04;
+        relTol               0.2;
+    }
+    nutFinal
+    {
+        $nut;
+        relTol               1e-02;
+    }
+
+    // Compressible energy/temperature (if present)
+    T
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    TFinal
+    {
+        $T;
+        relTol               0.01;
+    }
+
+    h
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    hFinal
+    {
+        $h;
+        relTol               0.01;
+    }
+
+    e
+    {
+        solver               smoothSolver;
+        smoother             DILUGaussSeidel;
+        tolerance            1e-06;
+        relTol               0.1;
+    }
+    eFinal
+    {
+        $e;
+        relTol               0.01;
+    }
+}
+
+// SIMPLE loop controls
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    consistent               true;
+
+    pRefCell  0;
+    pRefValue 0;
+
+    // IMPORTANT: primitive-form residualControl (expected by your binary)
+    residualControl
+    {
+        // Set per-field primitive thresholds for convergence
+        p           1e-05;
+        U           1e-05;
+        k           1e-05;
+        epsilon     1e-05;
+
+        // Turbulence variants (enable only for fields that actually exist)
+        omega       1e-05;
+        nuTilda     1e-05;
+        nut         1e-05;
+
+        // Compressible additions (keep only if present in your case)
+        T           1e-05;
+        h           1e-05;
+        e           1e-05;
+    }
+}
+
+// PIMPLE loop controls (for transient or outer corrections)
+PIMPLE
+{
+    nOuterCorrectors          2;
+    nCorrectors               2;
+    nNonOrthogonalCorrectors  0;
+    pRefCell                  0;
+    pRefValue                 0;
+
+    // Primitive-form residualControl for PIMPLE (if used by your solver)
+    residualControl
+    {
+        p           1e-05;
+        U           1e-05;
+        k           1e-05;
+        epsilon     1e-05;
+        omega       1e-05;
+        nuTilda     1e-05;
+        nut         1e-05;
+        T           1e-05;
+        h           1e-05;
+        e           1e-05;
+    }
+}
+
+// PISO controls (used by some solvers)
+PISO
+{
+    nCorrectors               3;
+    nNonOrthogonalCorrectors  0;
+    pRefCell                  0;
+    pRefValue                 0;
+}
+
+// Under-relaxation factors
+relaxationFactors
+{
+    p        0.7;
+    U        0.2;
+    k        0.5;
+    epsilon  0.5;
+
+    omega    0.5;
+    nuTilda  0.5;
+    nut      0.5;
+
+    T        0.5;
+    h        0.5;
+    e        0.5;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
