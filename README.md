@@ -70,7 +70,7 @@ Installation
 
 2. Clone or copy this repository.
 
-3. Create and activate a Python virtual environment:
+3. (Optional) Create and activate a Python virtual environment:
 
    ```bash
    cd path/to/project
